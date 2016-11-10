@@ -1,0 +1,23 @@
+{
+    "development": {
+        "host": "0.0.0.0",
+        "port": 8086,
+        "database": "telegraf",
+        "username": "admin",
+        "password": "hyperpilot"
+    },
+    "production": {
+        "host": "0.0.0.0",
+        "port": 8086,
+        "database": "telegraf",
+        "username": "admin",
+        "password": "hyperpilot"
+    },
+    "test": {
+        "host": "0.0.0.0",
+        "port": 8086,
+        "database": "telegraf",
+        "username": "admin",
+        "password": "hyperpilot"
+    }
+}

@@ -25,6 +25,8 @@
     "babel-jscs": "3.0.0-beta1",
     "bluebird": "3.4.6",
     "body-parser": "1.15.2",
+    "cron": "1.1.1",
+    "influx": "5.0.0-alpha.4",
     "lodash": "4.15.0",
     "multer": "1.2.0",
     "node-rest-client": "^2.0.1"
