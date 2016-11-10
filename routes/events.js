@@ -1,10 +1,7 @@
-const CronJob = require('cron').CronJob;
-// CronJobList, singleton
-
+const CronJob   = require('cron').CronJob;
 const express   = require('express');
 const Router    = express.Router();
 const influx    = require('../server/influxdb.js');
-// const _         = require('lodash');
 
 // const generateErrorHandler = function(res) {
 //   return err => {
@@ -78,8 +75,9 @@ Router.route('/apiv0.1/events/register')
 });
 
 Router.route('/apiv0.1/events/commit')
-.get((req, res) => {
+.post((req, res) => {
   const data = req.body;
+
   // stop job
   job.cancel(data);
   res.status(200).json({data: {'description': `The work of ad testing of host ${data.host} had been commited.`}});
