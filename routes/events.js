@@ -6,12 +6,12 @@ const Router    = express.Router();
 const influx    = require('../server/influxdb.js');
 // const _         = require('lodash');
 
-const generateErrorHandler = function(res) {
-  return err => {
-    console.error(err);
-    res.status(500).json({error: true, data: err.message});
-  };
-};
+// const generateErrorHandler = function(res) {
+//   return err => {
+//     console.error(err);
+//     res.status(500).json({error: true, data: err.message});
+//   };
+// };
 
 class Job {
   constructor(influxClient) {
@@ -64,8 +64,7 @@ const job = new Job(influx);
 
 Router.route('/apiv0.1/events/register')
 .post((req, res) => {
-  const errorHandler = generateErrorHandler(res);
-  let data = req.body;
+  const data = req.body;
 
   // Generate uuid
 
@@ -79,22 +78,11 @@ Router.route('/apiv0.1/events/register')
 });
 
 Router.route('/apiv0.1/events/commit')
-.get(function(req, res) {
-  const errorHandler = generateErrorHandler(res);
-
+.get((req, res) => {
+  const data = req.body;
   // stop job
+  job.cancel(data);
+  res.status(200).json({data: {'description': `The work of ad testing of host ${data.host} had been commited.`}});
 });
-// .get(function(req, res) {
-//   const errorHandler = generateErrorHandler(res);
-//   const data = {
-//     coin: req.query.coin
-//   };
-//
-//   // db.Pool.queryPools(data)
-//   //   .then(function(result) {
-//   //     res.status(200).json({error: false, data: result});
-//   //   })
-//   //   .catch(errorHandler);
-// })
 
 module.exports = Router;
