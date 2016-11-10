@@ -4,7 +4,7 @@ const CronJob = require('cron').CronJob;
 const express   = require('express');
 const Router    = express.Router();
 const influx    = require('../server/influxdb.js');
-const _         = require('lodash');
+// const _         = require('lodash');
 
 const generateErrorHandler = function(res) {
   return err => {
@@ -13,42 +13,42 @@ const generateErrorHandler = function(res) {
   };
 };
 
-
 class Job {
-  constructor(influx) {
+  constructor(influxClient) {
     this.jobList = {};
-    this.influx = influx;
+    this.influx = influxClient;
   }
 
-  _insertRecord(measurement) {
-    const targetHost = measurement.targetHost;
-    delete measurement.targetHost;
-  const data = _.map(measurement, function(item) {
-      return {measurement: item, tags:{host:item.targetHost}, fields:}
-})
+  _insertRecord(measurementName, measurement) {
     // insert data to influx
     this.influx.writePoints([
+      {
+        measurement: measurementName,
+        tags: measurement.tags,
+        fields: measurement.fields
+      }
     ]).catch((err) => {
       console.error(`Error saving data to InfluxDB! ${err.stack}`);
     });
   }
 
   add(options) {
+    // validate the data of measurement
+    // if it is correct, raise erroe
+
     const payload = {
       cronTime: '*/15 * * * * *',
       onTick: function() {
-        this.insertRecord(this.measurement);
+        this.insertRecord('load_testing', this.measurement);
       },
-      timeZone:'America/Los_Angeles',
+      timeZone: 'America/Los_Angeles',
       runOnInit: true,
       start: true,
       context: {measurement: options.measurement, insertRecord: this._insertRecord}
-    }
-
-    const cronjob = new CronJob(payload);
+    };
 
     this.jobList[`${options.host}-${options.uuid}`] = {
-      start: options.time,
+      startedAt: options.startedAt,
       instance: new CronJob(payload)
     };
   }
@@ -56,6 +56,7 @@ class Job {
   cancel(options) {
     this.jobList[`${options.host}-${options.uuid}`].instance.stop();
     this.jobList[`${options.host}-${options.uuid}`].stopedAt = new Date();
+    this._insertRecord('load_testing_resulti', options.measurement);
   }
 }
 
@@ -66,23 +67,23 @@ Router.route('/apiv0.1/events/register')
   const errorHandler = generateErrorHandler(res);
   let data = req.body;
 
-  // add job
+  // Generate uuid
+
+  data.uuid = 'xxxx';
+
+  // try job.add catch e, res.status(400).json({error: e})
+
   job.add(data);
 
-  // db.Pool.addPool(req.body)
-  //   .then(function(data) {
-  //     res.status(200).json({error: false, data: data});
-  //   })
-  //   .catch(errorHandler);
+  res.status(200).json({data: {uuid: data.uuid}});
 });
 
 Router.route('/apiv0.1/events/commit')
 .get(function(req, res) {
   const errorHandler = generateErrorHandler(res);
 
-  //stop job
-
-})
+  // stop job
+});
 // .get(function(req, res) {
 //   const errorHandler = generateErrorHandler(res);
 //   const data = {
