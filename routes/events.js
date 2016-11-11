@@ -1,7 +1,9 @@
+const _         = require('lodash');
 const CronJob   = require('cron').CronJob;
 const express   = require('express');
 const Router    = express.Router();
-const influx    = require('../server/influxdb.js');
+const influx    = require('../server/influxdb');
+const Random    = require('meteor-random');
 
 // const generateErrorHandler = function(res) {
 //   return err => {
@@ -11,14 +13,13 @@ const influx    = require('../server/influxdb.js');
 // };
 
 class Job {
-  constructor(influxClient) {
+  constructor() {
     this.jobList = {};
-    this.influx = influxClient;
   }
 
   _insertRecord(measurementName, measurement) {
     // insert data to influx
-    this.influx.writePoints([
+    influx.writePoints([
       {
         measurement: measurementName,
         tags: measurement.tags,
@@ -29,6 +30,10 @@ class Job {
     });
   }
 
+  list() {
+    return _.mapValues(this.jobList, 'instance.running');
+  }
+
   add(options) {
     // validate the data of measurement
     // if it is correct, raise erroe
@@ -37,6 +42,7 @@ class Job {
       cronTime: '*/15 * * * * *',
       onTick: function() {
         this.insertRecord('load_testing', this.measurement);
+        console.log('running, inserting');
       },
       timeZone: 'America/Los_Angeles',
       runOnInit: true,
@@ -53,11 +59,16 @@ class Job {
   cancel(options) {
     this.jobList[`${options.host}-${options.uuid}`].instance.stop();
     this.jobList[`${options.host}-${options.uuid}`].stopedAt = new Date();
-    this._insertRecord('load_testing_resulti', options.measurement);
+    this._insertRecord('load_testing_result', options.measurement);
   }
 }
 
-const job = new Job(influx);
+const job = new Job();
+
+Router.route('/apiv0.1/events/isrunning')
+.get((req, res) => {
+  res.status(200).json(job.list());
+});
 
 Router.route('/apiv0.1/events/register')
 .post((req, res) => {
@@ -65,7 +76,7 @@ Router.route('/apiv0.1/events/register')
 
   // Generate uuid
 
-  data.uuid = 'xxxx';
+  data.uuid = Random.id(17);
 
   // try job.add catch e, res.status(400).json({error: e})
 

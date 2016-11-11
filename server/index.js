@@ -4,6 +4,7 @@ const express     = require('express');
 const env         = process.env.NODE_ENV || 'development';
 const config      = require(__dirname + '/../config/api.json')[env];
 const bodyParser  = require('body-parser');
+const influx      = require('./influxdb');
 const app         = express();
 
 // Routers
@@ -36,9 +37,23 @@ app.get('/apiv0.1/ping', function(req, res) {
   });
 });
 
-app.listen(config.port, config.host, function() {
-  console.log('Server listening on %s:%d', config.host, config.port);
-});
+influx.getDatabaseNames()
+  .then(names => {
+    if (!names.includes('telegraf')) {
+      return influx.createDatabase('telegraf');
+    }
+
+    return {names: names};
+  })
+  .then(() => {
+    app.listen(config.port, config.host, function() {
+      console.log('Server listening on %s:%d', config.host, config.port);
+    });
+  })
+  .catch(err => {
+    console.error(`Error creating Influx database!
+${err}`);
+  });
 
 // export default app;
 module.exports = app;

@@ -28,6 +28,7 @@
     "cron": "1.1.1",
     "influx": "5.0.0-alpha.4",
     "lodash": "4.15.0",
+    "meteor-random": "0.0.3",
     "multer": "1.2.0",
     "node-rest-client": "^2.0.1"
   },
