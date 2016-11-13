@@ -45,7 +45,6 @@ class Job {
       cronTime: '*/15 * * * * *',
       onTick: function() {
         this.insertRecord('load_testing', this.measurement);
-        console.log('running, inserting');
       },
       timeZone: 'America/Los_Angeles',
       runOnInit: true,
