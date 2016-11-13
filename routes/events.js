@@ -19,13 +19,16 @@ class Job {
 
   _insertRecord(measurementName, measurement) {
     // insert data to influx
-    influx.writePoints([
-      {
+    if (measurementName === 'load_testing_result') {
+      measurement.fields.requestStats = JSON.stringify(measurement.fields.requestStats);
+    }
+    const data = [{
         measurement: measurementName,
         tags: measurement.tags,
         fields: measurement.fields
-      }
-    ]).catch((err) => {
+      }];
+
+    return influx.writePoints(data).catch((err) => {
       console.error(`Error saving data to InfluxDB! ${err.stack}`);
     });
   }
@@ -49,16 +52,17 @@ class Job {
       start: true,
       context: {measurement: options.measurement, insertRecord: this._insertRecord}
     };
-
-    this.jobList[`${options.host}-${options.uuid}`] = {
+    // startedAt: in python and nodejs is 1000 times different.
+    this.jobList[`${options.hostname}-${options.uuid}`] = {
       startedAt: options.startedAt,
       instance: new CronJob(payload)
     };
   }
 
   cancel(options) {
-    this.jobList[`${options.host}-${options.uuid}`].instance.stop();
-    this.jobList[`${options.host}-${options.uuid}`].stopedAt = new Date();
+    if(!_.includes(Object.keys( this.jobList), `${options.hostname}-${options.uuid}`)) {return;}
+    this.jobList[`${options.hostname}-${options.uuid}`].instance.stop();
+    this.jobList[`${options.hostname}-${options.uuid}`].stopedAt = new Date();
     this._insertRecord('load_testing_result', options.measurement);
   }
 }
@@ -75,11 +79,9 @@ Router.route('/apiv0.1/events/register')
   const data = req.body;
 
   // Generate uuid
-
   data.uuid = Random.id(17);
 
   // try job.add catch e, res.status(400).json({error: e})
-
   job.add(data);
 
   res.status(200).json({data: {uuid: data.uuid}});
@@ -88,10 +90,9 @@ Router.route('/apiv0.1/events/register')
 Router.route('/apiv0.1/events/commit')
 .post((req, res) => {
   const data = req.body;
-
   // stop job
   job.cancel(data);
-  res.status(200).json({data: {'description': `The work of ad testing of host ${data.host} had been commited.`}});
+  res.status(200).json({data: {'description': `The work of ad testing of host ${data.targetHost} had been commited.`}});
 });
 
 module.exports = Router;

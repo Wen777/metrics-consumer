@@ -20,19 +20,11 @@ const schema    = [
   {
     measurement: 'load_testing_result',
     fields: {
-      statistics_text: Influx.FieldType.STRING,
-      failures_text: Influx.FieldType.STRING,
-      sstatistics_requests: Influx.FieldType.INTEGER,
-      statistics_failures: Influx.FieldType.INTEGER,
-      statistics_median_response_time: Influx.FieldType.INTEGER,
-      statistics_average_response_time: Influx.FieldType.INTEGER,
-      statistics_min_response_time: Influx.FieldType.INTEGER,
-      statistics_max_response_time: Influx.FieldType.INTEGER
+      requestStats: Influx.FieldType.STRING
     },
     tags: [
       'hostname',
       'method',
-      'name',
       'mode'
     ]
   }
