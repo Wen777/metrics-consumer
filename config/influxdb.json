@@ -7,10 +7,10 @@
         "password": "hyperpilot"
     },
     "production": {
-        "host": "influxdb",
+        "host": "influxsrv",
         "port": 8086,
         "database": "telegraf",
-        "username": "admin",
+        "username": "root",
         "password": "hyperpilot"
     },
     "test": {
